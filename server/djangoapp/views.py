@@ -14,6 +14,8 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 from .models import CarMake, CarModel
+from .restapis import get_request  # Ensure this import is included
+from .restapis import analyze_review_sentiments  # Ensure this import is included
 
 
 # Get an instance of a logger
