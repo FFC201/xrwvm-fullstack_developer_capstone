@@ -1,4 +1,3 @@
-# Uncomment the required imports before adding the code
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
@@ -15,6 +14,7 @@ from .restapis import (
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
 
 @csrf_exempt
 def login_user(request):
@@ -108,7 +108,9 @@ def get_dealer_reviews(request, dealer_id):
         endpoint = f"/fetchReviews/dealer/{dealer_id}"
         reviews = get_request(endpoint)
         for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail ['review'])
+            response = analyze_review_sentiments(
+                review_detail['review']
+            )
             review_detail['sentiment'] = response['sentiment']
         return JsonResponse({"status": 200, "reviews": reviews})
 
