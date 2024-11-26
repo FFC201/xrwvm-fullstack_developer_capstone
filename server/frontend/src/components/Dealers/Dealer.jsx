@@ -16,8 +16,8 @@ const Dealer = () => {
 
   let params = useParams();
   let id = params.id;
-  let dealer_url = `/djangoapp/dealer/${id}/`; // Adjusted URL
-  let reviews_url = `/djangoapp/reviews/dealer/${id}/`; // Adjusted URL
+  let dealer_url = `/djangoapp/dealer/${id}`; // Removed trailing slash
+  let reviews_url = `/djangoapp/reviews/dealer/${id}`; // Removed trailing slash
   let post_review = `/postreview/${id}`; // This remains unchanged
 
   const get_dealer = async () => {

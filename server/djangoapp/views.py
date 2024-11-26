@@ -8,13 +8,20 @@ from .populate import initiate
 from .models import CarMake, CarModel
 from .restapis import (
     get_request,
-    analyze_review_sentiments,
     post_review
 )
+import requests
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# Sentiment analysis service URL
+SENTIMENT_ANALYZER_URL = os.getenv("sentiment_analyzer_url")
 
 @csrf_exempt
 def login_user(request):
@@ -34,11 +41,9 @@ def login_user(request):
 
     return JsonResponse(response_data)
 
-
 def logout_user(request):
     response_data = {"userName": ""}
     return JsonResponse(response_data)
-
 
 @csrf_exempt
 def registration(request):
@@ -77,7 +82,6 @@ def registration(request):
         }
         return JsonResponse(response_data)
 
-
 def get_cars(request):
     count = CarMake.objects.filter().count()
     if count == 0:
@@ -92,7 +96,6 @@ def get_cars(request):
     ]
     return JsonResponse({"CarModels": cars})
 
-
 def get_dealerships(request, state="All"):
     endpoint = (
         "/fetchDealers"
@@ -102,32 +105,42 @@ def get_dealerships(request, state="All"):
     dealerships = get_request(endpoint)
     return JsonResponse({"status": 200, "dealers": dealerships})
 
-
 def get_dealer_reviews(request, dealer_id):
     if dealer_id:
         endpoint = f"/fetchReviews/dealer/{dealer_id}"
         reviews = get_request(endpoint)
         for review_detail in reviews:
-            response = analyze_review_sentiments(
-                review_detail['review']
-            )
-            review_detail['sentiment'] = response['sentiment']
+            response = analyze_review_sentiments(review_detail['review'])
+            review_detail['sentiment'] = response.get('sentiment', 'unknown')
         return JsonResponse({"status": 200, "reviews": reviews})
 
     return JsonResponse({"status": 400, "message": "Bad Request"})
 
+def analyze_review_sentiments(review_text):
+    try:
+        response = requests.post(SENTIMENT_ANALYZER_URL, json={'text': review_text})
+        if response.status_code == 200:
+            return response.json()
+        else:
+            logger.error(f"Sentiment analysis service returned status code {response.status_code}")
+            return {'sentiment': 'unknown'}
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error calling sentiment analysis service: {e}")
+        return {'sentiment': 'unknown'}
 
 def get_dealer_details(request, dealer_id):
     if dealer_id:
         endpoint = f"/fetchDealer/{dealer_id}"
+        logger.debug(f"Fetching dealer details from {endpoint}")
         dealership = get_request(endpoint)
-        return JsonResponse({"status": 200, "dealer": dealership})
-
+        logger.debug(f"Received dealership data: {dealership}")
+        if dealership:
+            return JsonResponse({"status": 200, "dealer": dealership})
+        return JsonResponse({"status": 404, "message": "Dealer not found"})
     return JsonResponse({"status": 400, "message": "Bad Request"})
 
-
 def add_review(request):
-    if not request.user.is_anonymous:
+    if not request.user .is_anonymous:
         data = json.loads(request.body)
         try:
             post_review(data)

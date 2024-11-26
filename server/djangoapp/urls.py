@@ -27,7 +27,7 @@ urlpatterns = [
     ),
     # path for dealer_details view
     path(
-        'dealer/<int:dealer_id>',
+        'djangoapp/dealer/<int:dealer_id>',
         views.get_dealer_details,
         name='dealer_details'
     ),
