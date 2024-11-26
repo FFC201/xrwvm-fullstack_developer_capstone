@@ -75,19 +75,25 @@ app.get('/fetchDealers/:state', async (req, res) => {
   }
 });
 
-// Express route to fetch dealer by a particular id for /djangoapp/dealer/:id
-app.get('/djangoapp/dealer/:id', async (req, res) => {
-  try {
-    const dealerId = mongoose.Types.ObjectId(req.params.id); // Convert to ObjectId
-    const dealer = await Dealerships.findById(dealerId);
-    if (!dealer) {
-      return res.status(404).json({ message: "Dealer not found" });
+// Express route to fetch dealer by a particular id
+app.get('/fetchDealer/:id', async (req, res) => {
+    try {
+      const dealerId = parseInt(req.params.id, 10); // Convert id to an integer
+      if (isNaN(dealerId)) {
+        return res.status(400).json({ message: "Invalid dealer ID" });
+      }
+  
+      const dealer = dealerships_data.dealerships.find(dealer => dealer.id === dealerId);
+      if (!dealer) {
+        return res.status(404).json({ message: "Dealer not found" });
+      }
+  
+      res.status(200).json({ status: 200, dealer });
+    } catch (error) {
+      console.error("Error fetching dealer:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-    res.json(dealer);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-});
+  });  
 
 // Start the server
 app.listen(port, () => {
